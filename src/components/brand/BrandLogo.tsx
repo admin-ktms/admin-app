@@ -12,53 +12,63 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   className = '',
 }) => {
   const dimensions = {
-    sm: { box: 28, text: 'text-xs' },
-    md: { box: 36, text: 'text-sm' },
-    lg: { box: 44, text: 'text-base' },
+    sm: { height: 26, width: 56, text: 'text-xs', sub: 'text-[8px]' },
+    md: { height: 34, width: 72, text: 'text-sm', sub: 'text-[9px]' },
+    lg: { height: 42, width: 88, text: 'text-base', sub: 'text-[10px]' },
   }[size];
 
   return (
-    <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
-      {/* Geometric KTMS Stadium Shield Monogram */}
+    <div className={`inline-flex items-center gap-3 select-none ${className}`}>
+      {/* Clean Geometric Wordmark Pill (No Shield) */}
       <svg
-        width={dimensions.box}
-        height={dimensions.box}
-        viewBox="0 0 44 44"
+        width={dimensions.width}
+        height={dimensions.height}
+        viewBox="0 0 88 42"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className="shrink-0"
       >
-        <rect width="44" height="44" rx="8" fill="#11151D" />
-        <path
-          d="M6 12L22 4L38 12V26C38 34.5 22 40 22 40C22 40 6 34.5 6 26V12Z"
+        {/* Subtle Charcoal Container with Crisp Stadium Border */}
+        <rect
+          x="1"
+          y="1"
+          width="86"
+          height="40"
+          rx="6"
+          fill="#11151D"
           stroke="#2A3342"
-          strokeWidth="2"
+          strokeWidth="1.5"
         />
-        <path
-          d="M10 15L22 9L34 15V25C34 31.5 22 36 22 36C22 36 10 31.5 10 25V15Z"
-          fill="#1A2230"
-        />
+
+        {/* Minimal Cyan Focus Accent Bar */}
+        <rect x="1" y="1" width="4" height="40" rx="2" fill="#00D9FF" />
+
+        {/* High-Impact Geometric Typography */}
         <text
-          x="22"
-          y="26"
+          x="46"
+          y="28"
           textAnchor="middle"
-          fill="#00D9FF"
-          fontFamily="monospace"
+          fill="#F5F7FA"
+          fontFamily="system-ui, -apple-system, 'Segoe UI', 'Impact', sans-serif"
           fontWeight="900"
-          fontSize="10"
-          letterSpacing="0.5"
+          fontSize="21"
+          letterSpacing="2.5"
         >
-          KTMS
+          KT<tspan fill="#00D9FF">MS</tspan>
         </text>
       </svg>
 
       {showText && (
-        <div className="flex flex-col">
-          <span className={`font-black tracking-wider text-ktms-text leading-none ${dimensions.text}`}>
-            KTMS
+        <div className="flex flex-col justify-center">
+          <span
+            className={`font-black tracking-wider text-ktms-text uppercase leading-tight ${dimensions.text}`}
+          >
+            KickOff
           </span>
-          <span className="text-[9px] font-mono font-semibold tracking-widest text-ktms-muted uppercase mt-0.5">
-            Operations Console
+          <span
+            className={`font-mono font-semibold tracking-widest text-ktms-muted uppercase ${dimensions.sub}`}
+          >
+            Ops Console
           </span>
         </div>
       )}
