@@ -8,6 +8,8 @@ import { AccessDeniedView } from '@/views/auth/AccessDeniedView';
 import { DashboardOverview } from '@/views/dashboard/DashboardOverview';
 import { TournamentsListDesk } from '@/views/tournaments/TournamentsListDesk';
 import { TournamentDetailDesk } from '@/views/tournaments/TournamentDetailDesk';
+import { DisputeQueueDesk } from '@/views/adjudication/DisputeQueueDesk';
+import { DisputeReviewCase } from '@/views/adjudication/DisputeReviewCase';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -46,6 +48,28 @@ export const AppRoutes: React.FC = () => {
           <ProtectedRoute allowedRoles={['game_master', 'platform_manager', 'moderator']}>
             <AdminShell>
               <TournamentDetailDesk />
+            </AdminShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Desk 2: Adjudication & Dispute Desk */}
+      <Route
+        path="/disputes"
+        element={
+          <ProtectedRoute allowedRoles={['game_master', 'platform_manager', 'moderator']}>
+            <AdminShell>
+              <DisputeQueueDesk />
+            </AdminShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/disputes/:type/:id"
+        element={
+          <ProtectedRoute allowedRoles={['game_master', 'platform_manager', 'moderator']}>
+            <AdminShell>
+              <DisputeReviewCase />
             </AdminShell>
           </ProtectedRoute>
         }
