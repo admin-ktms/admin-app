@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import {
-  Users,
   UserPlus,
   Shield,
   Trash2,
   Mail,
   AlertCircle,
-  CheckCircle2,
   Clock,
 } from 'lucide-react';
 import {
@@ -14,7 +12,6 @@ import {
   usePendingInvitations,
   useGovernanceMutations,
 } from '@/hooks/useAdminOperationsFeed';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { StaffDirectoryItem, PendingAdminInvitation } from '@/api/governance';
 import { AdminRoleCode } from '@/types/auth.types';
 import { DataTable, Column } from '@/components/ui/DataTable';
@@ -26,18 +23,15 @@ import { Textarea } from '@/components/ui/Textarea';
 import { RoleGate } from '@/routes/RoleGate';
 
 export const StaffDirectoryDesk: React.FC = () => {
-  const { user, isGameMaster } = useAdminAuth();
   const { data: staff = [], isLoading: isStaffLoading } = useStaffDirectory();
-  const { data: invites = [], isLoading: isInvitesLoading } = usePendingInvitations();
-  const { inviteStaff, revokeInvite, assignRole, revokeRole } = useGovernanceMutations();
+  const { data: invites = [] } = usePendingInvitations();
+  const { inviteStaff, revokeInvite, assignRole } = useGovernanceMutations();
 
-  // Invite Modal State
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<AdminRoleCode>('moderator');
   const [inviteError, setInviteError] = useState<string | null>(null);
 
-  // Role Mutation Modal State
   const [selectedStaff, setSelectedStaff] = useState<StaffDirectoryItem | null>(null);
   const [targetRole, setTargetRole] = useState<AdminRoleCode>('moderator');
   const [roleReason, setRoleReason] = useState('');
@@ -49,7 +43,6 @@ export const StaffDirectoryDesk: React.FC = () => {
 
     try {
       setInviteError(null);
-      // Default expiration: 7 days from now
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
       await inviteStaff.mutateAsync({
         invited_email: inviteEmail.trim(),
@@ -156,7 +149,6 @@ export const StaffDirectoryDesk: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Invite Modal */}
       <DrawerModal
         isOpen={isInviteOpen}
         onClose={() => setIsInviteOpen(false)}
@@ -214,7 +206,6 @@ export const StaffDirectoryDesk: React.FC = () => {
         </form>
       </DrawerModal>
 
-      {/* Role Reassignment Modal */}
       <DrawerModal
         isOpen={!!selectedStaff}
         onClose={() => setSelectedStaff(null)}
@@ -267,7 +258,6 @@ export const StaffDirectoryDesk: React.FC = () => {
         </form>
       </DrawerModal>
 
-      {/* Staff Roster Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-base font-bold text-ktms-text">Platform Staff Personnel</h2>
@@ -296,7 +286,6 @@ export const StaffDirectoryDesk: React.FC = () => {
         emptyMessage="No administrative staff registered."
       />
 
-      {/* Pending Invitations Section */}
       {invites.length > 0 && (
         <div className="space-y-3 pt-4 border-t border-ktms-border">
           <h3 className="text-sm font-bold text-ktms-text flex items-center gap-2">
