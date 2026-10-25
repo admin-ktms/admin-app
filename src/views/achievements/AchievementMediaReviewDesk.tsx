@@ -36,12 +36,11 @@ export const AchievementMediaReviewDesk: React.FC = () => {
   const [search, setSearch] = useState('');
   const [selectedReview, setSelectedReview] = useState<AchievementMediaReviewItem | null>(null);
   const [actionType, setActionType] = useState<'award' | 'dismiss'>('award');
-  const [chosenAchievementCode, setChosenAchievementCode] = useState('');
+  const [chosenDefId, setChosenDefId] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Lightbox Media View State
-  const [activeMedia, setActiveMedia] = useState<{ url: string; type: string; title: string } | null>(null);
+  const [activeMedia, setActiveMedia] = useState<{ url: string; type: string } | null>(null);
 
   const filteredReviews = reviews.filter((r) => {
     return (
@@ -55,7 +54,7 @@ export const AchievementMediaReviewDesk: React.FC = () => {
   const handleOpenAdjudication = (review: AchievementMediaReviewItem, type: 'award' | 'dismiss') => {
     setSelectedReview(review);
     setActionType(type);
-    setChosenAchievementCode(review.suggested_achievement_definition_id || '');
+    setChosenDefId(review.suggested_achievement_definition_id || '');
     setAdminNotes('');
     setFormError(null);
   };
@@ -68,15 +67,21 @@ export const AchievementMediaReviewDesk: React.FC = () => {
       setFormError(null);
 
       if (actionType === 'award') {
-        if (!chosenAchievementCode) {
+        if (!chosenDefId) {
           setFormError('Select an achievement from the catalog to award.');
+          return;
+        }
+
+        const def = masterAchievements.find((m) => m.achievement_definition_id === chosenDefId);
+        if (!def) {
+          setFormError('Selected achievement code could not be resolved.');
           return;
         }
 
         await awardAchievement.mutateAsync({
           tournament_id: selectedReview.tournament_id,
           registration_id: selectedReview.submitting_registration_id,
-          achievement_code: chosenAchievementCode,
+          achievement_code: def.achievement_code,
           fixture_id: selectedReview.fixture_id,
           review_id: selectedReview.review_id,
           admin_notes: adminNotes.trim() || undefined,
@@ -130,7 +135,6 @@ export const AchievementMediaReviewDesk: React.FC = () => {
             setActiveMedia({
               url: r.media_url,
               type: r.media_type,
-              title: `Evidence: ${r.match_code} (${r.player_id})`,
             });
           }}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-ktms-surface hover:bg-ktms-border text-xs text-ktms-cyan transition border border-ktms-border"
@@ -204,12 +208,11 @@ export const AchievementMediaReviewDesk: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Media Inspection Modal */}
       {activeMedia?.type === 'SCREEN_RECORDING' ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
           <div className="flex flex-col w-full max-w-3xl rounded-xl border border-ktms-border bg-ktms-panel overflow-hidden">
             <div className="flex items-center justify-between border-b border-ktms-border px-4 py-3">
-              <span className="text-xs font-bold uppercase text-ktms-text">{activeMedia.title}</span>
+              <span className="text-xs font-bold uppercase text-ktms-text">Recorded Video Evidence</span>
               <button
                 onClick={() => setActiveMedia(null)}
                 className="text-xs text-ktms-muted hover:text-white"
@@ -224,14 +227,13 @@ export const AchievementMediaReviewDesk: React.FC = () => {
         </div>
       ) : (
         <ImageViewer
-          isOpen={!!activeMedia}
           src={activeMedia?.url || null}
-          title={activeMedia?.title}
+          alt="Evidence Screenshot"
+          isOpen={!!activeMedia}
           onClose={() => setActiveMedia(null)}
         />
       )}
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-lg font-bold text-ktms-text flex items-center gap-2">
@@ -253,7 +255,6 @@ export const AchievementMediaReviewDesk: React.FC = () => {
         </Button>
       </div>
 
-      {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-ktms-panel p-3 rounded-lg border border-ktms-border">
         <div className="flex items-center gap-2">
           <StatusBadge label={`${reviews.length} Pending Submissions`} variant="gold" pulse />
@@ -271,7 +272,6 @@ export const AchievementMediaReviewDesk: React.FC = () => {
         </div>
       </div>
 
-      {/* Desktop Grid View */}
       <div className="hidden lg:block">
         <DataTable
           columns={columns}
@@ -282,7 +282,6 @@ export const AchievementMediaReviewDesk: React.FC = () => {
         />
       </div>
 
-      {/* Mobile Touch Card View */}
       <div className="lg:hidden space-y-3">
         {isReviewsLoading ? (
           <div className="p-8 text-center text-xs text-ktms-muted font-mono">
@@ -327,7 +326,6 @@ export const AchievementMediaReviewDesk: React.FC = () => {
                       setActiveMedia({
                         url: r.media_url,
                         type: r.media_type,
-                        title: `Evidence: ${r.match_code}`,
                       })
                     }
                     className="flex items-center gap-1 text-xs text-ktms-cyan font-semibold"
@@ -364,7 +362,6 @@ export const AchievementMediaReviewDesk: React.FC = () => {
         )}
       </div>
 
-      {/* Adjudication Drawer Modal */}
       <DrawerModal
         isOpen={!!selectedReview}
         onClose={() => setSelectedReview(null)}
@@ -402,14 +399,14 @@ export const AchievementMediaReviewDesk: React.FC = () => {
                 Select Achievement to Award
               </label>
               <select
-                value={chosenAchievementCode}
-                onChange={(e) => setChosenAchievementCode(e.target.value)}
+                value={chosenDefId}
+                onChange={(e) => setChosenDefId(e.target.value)}
                 required
                 className="min-h-[44px] w-full rounded border border-ktms-border bg-ktms-bg px-3 py-2 text-xs text-ktms-text focus:border-ktms-cyan focus:outline-none"
               >
                 <option value="">-- Choose Master Achievement Definition --</option>
                 {masterAchievements.map((def) => (
-                  <option key={def.achievement_definition_id} value={def.achievement_code}>
+                  <option key={def.achievement_definition_id} value={def.achievement_definition_id}>
                     [{def.tier}] {def.achievement_name} ({def.achievement_code})
                   </option>
                 ))}
@@ -427,7 +424,7 @@ export const AchievementMediaReviewDesk: React.FC = () => {
             placeholder={
               actionType === 'award'
                 ? 'Document highlight verification details...'
-                : 'State why the highlight was declined (e.g. low resolution, rule violation)...'
+                : 'State why the highlight was declined...'
             }
             rows={3}
             required={actionType === 'dismiss'}
