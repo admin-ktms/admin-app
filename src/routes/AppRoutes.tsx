@@ -16,6 +16,7 @@ import { SupportTicketDesk } from '@/views/support/SupportTicketDesk';
 import { SupportCaseView } from '@/views/support/SupportCaseView';
 import { AchievementMediaReviewDesk } from '@/views/achievements/AchievementMediaReviewDesk';
 import { AchievementCurationDesk } from '@/views/achievements/AchievementCurationDesk';
+import { GovernanceDeskShell } from '@/views/governance/GovernanceDeskShell';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -148,6 +149,18 @@ export const AppRoutes: React.FC = () => {
           <ProtectedRoute allowedRoles={['game_master', 'platform_manager', 'moderator']}>
             <AdminShell>
               <AchievementMediaReviewDesk />
+            </AdminShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Desk 7: Governance & Game Master Console */}
+      <Route
+        path="/governance"
+        element={
+          <ProtectedRoute allowedRoles={['game_master', 'platform_manager']}>
+            <AdminShell>
+              <GovernanceDeskShell />
             </AdminShell>
           </ProtectedRoute>
         }
