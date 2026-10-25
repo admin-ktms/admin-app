@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, Search, RefreshCw, Database } from 'lucide-react';
+import { Search, RefreshCw } from 'lucide-react';
 import { useAuditLogs } from '@/hooks/useAdminOperationsFeed';
 import { AuditLogItem } from '@/api/governance';
 import { DataTable, Column } from '@/components/ui/DataTable';
@@ -7,7 +7,7 @@ import { DrawerModal } from '@/components/layout/DrawerModal';
 import { Button } from '@/components/ui/Button';
 
 export const AuditExplorerDesk: React.FC = () => {
-  const [limit, setLimit] = useState(100);
+  const limit = 100;
   const { data: logs = [], isLoading, refetch, isFetching } = useAuditLogs(limit);
   const [search, setSearch] = useState('');
   const [selectedLog, setSelectedLog] = useState<AuditLogItem | null>(null);
@@ -89,7 +89,6 @@ export const AuditExplorerDesk: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Diff Inspector Modal */}
       <DrawerModal
         isOpen={!!selectedLog}
         onClose={() => setSelectedLog(null)}
@@ -139,7 +138,6 @@ export const AuditExplorerDesk: React.FC = () => {
         </div>
       </DrawerModal>
 
-      {/* Controls */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-ktms-panel p-3 rounded-lg border border-ktms-border">
         <div className="flex items-center gap-2">
           <Button
