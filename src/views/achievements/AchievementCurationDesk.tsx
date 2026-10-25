@@ -14,15 +14,15 @@ import { SwitchToggle } from '@/components/ui/SwitchToggle';
 
 export const AchievementCurationDesk: React.FC = () => {
   const navigate = useNavigate();
-  const { data: tournaments = [], isLoading: isTournamentsLoading } = useTournaments();
+  const { data: tournaments = [] } = useTournaments();
   const { data: masterDefs = [] } = useMasterAchievements();
   const { curatePool } = useAchievementMutations();
 
   const [selectedTournamentId, setSelectedTournamentId] = useState<string>('');
-  const { data: curated = [], isLoading: isCuratedLoading } =
-    useTournamentCuratedAchievements(selectedTournamentId || undefined);
+  const { data: curated = [] } = useTournamentCuratedAchievements(
+    selectedTournamentId || undefined
+  );
 
-  // Local draft state for editing caps and enablement
   const [localPool, setLocalPool] = useState<
     Record<
       string,
@@ -32,7 +32,6 @@ export const AchievementCurationDesk: React.FC = () => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Sync draft state when tournament changes
   React.useEffect(() => {
     if (tournaments.length > 0 && !selectedTournamentId) {
       setSelectedTournamentId(tournaments[0].tournament_id);
@@ -97,7 +96,6 @@ export const AchievementCurationDesk: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      {/* Top Bar */}
       <div className="flex flex-col gap-2">
         <button
           onClick={() => navigate('/achievements/reviews')}
@@ -129,7 +127,6 @@ export const AchievementCurationDesk: React.FC = () => {
         </div>
       </div>
 
-      {/* Status Alerts */}
       {saveSuccess && (
         <div className="p-3 rounded bg-ktms-green/10 border border-ktms-green/30 text-xs text-ktms-green flex items-center gap-2">
           <CheckCircle2 size={15} className="shrink-0" />
@@ -144,7 +141,6 @@ export const AchievementCurationDesk: React.FC = () => {
         </div>
       )}
 
-      {/* Tournament Selector */}
       <div className="flex items-center justify-between bg-ktms-panel p-4 rounded-xl border border-ktms-border">
         <label className="text-xs font-semibold uppercase tracking-wider text-ktms-muted">
           Active Tournament Scope:
@@ -162,7 +158,6 @@ export const AchievementCurationDesk: React.FC = () => {
         </select>
       </div>
 
-      {/* Master Catalog Curation Cards */}
       <div className="space-y-3">
         {masterDefs.map((def: MasterAchievementDefinition) => {
           const config = localPool[def.achievement_definition_id] || {
@@ -200,7 +195,6 @@ export const AchievementCurationDesk: React.FC = () => {
                 </div>
               </div>
 
-              {/* Controls */}
               <div className="flex items-center gap-4 border-t sm:border-t-0 border-ktms-border pt-3 sm:pt-0 shrink-0">
                 <div className="flex flex-col gap-1 text-right">
                   <span className="text-[10px] font-mono uppercase text-ktms-muted">Reward (Coins)</span>
