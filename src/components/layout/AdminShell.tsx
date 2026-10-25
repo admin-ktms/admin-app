@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
   Trophy,
   Swords,
@@ -12,6 +12,7 @@ import {
   Bell,
   Menu,
   X,
+  LucideIcon,
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAdminNotifications } from '@/hooks/useAdminNotifications';
@@ -23,7 +24,7 @@ import { AdminRoleCode } from '@/types/auth.types';
 interface NavItem {
   name: string;
   href: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
   roles: AdminRoleCode[];
 }
 
@@ -73,38 +74,33 @@ const NAVIGATION_ITEMS: NavItem[] = [
 ];
 
 export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, signOut, activeRole } = useAdminAuth();
+  const { user, logout, role } = useAdminAuth();
   const { notifications, unreadCount } = useAdminNotifications();
-  const navigate = useNavigate();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Check if any unread notification has URGENT or HIGH priority
   const hasUrgent = notifications.some(
     (n) => n.read_status === 'Unread' && (n.notification_priority === 'URGENT' || n.notification_priority === 'HIGH')
   );
 
   const visibleNavItems = NAVIGATION_ITEMS.filter(
-    (item) => activeRole && item.roles.includes(activeRole)
+    (item) => role && item.roles.includes(role)
   );
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-ktms-bg text-ktms-text">
-      {/* Realtime Incident Drawer */}
       <NotificationInboxDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
 
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-ktms-border bg-ktms-panel">
-        {/* Brand Header */}
         <div className="flex h-16 items-center justify-between px-5 border-b border-ktms-border">
-          <BrandLogo size={24} />
+          <BrandLogo size="md" />
           <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-ktms-cyan px-2 py-0.5 rounded bg-ktms-cyan/10 border border-ktms-cyan/30">
             Console
           </span>
         </div>
 
-        {/* Navigation Links */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
           {visibleNavItems.map((item) => {
             const Icon = item.icon;
@@ -127,7 +123,6 @@ export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }
           })}
         </nav>
 
-        {/* User Card & Sign Out */}
         <div className="p-3 border-t border-ktms-border bg-ktms-surface/40">
           <div className="flex items-center justify-between mb-2">
             <div>
@@ -135,7 +130,7 @@ export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }
                 {user?.display_name || 'Staff Member'}
               </span>
               <span className="font-mono text-[10px] text-ktms-cyan block">
-                {activeRole?.replace('_', ' ').toUpperCase()}
+                {role?.replace('_', ' ').toUpperCase()}
               </span>
             </div>
 
@@ -154,7 +149,7 @@ export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }
           </div>
 
           <button
-            onClick={() => signOut()}
+            onClick={() => logout()}
             className="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded bg-ktms-panel hover:bg-ktms-coral/15 hover:text-ktms-coral border border-ktms-border text-xs text-ktms-muted transition"
           >
             <LogOut size={13} />
@@ -165,11 +160,10 @@ export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Top Header (Mobile & Desktop Responsive) */}
         <header className="flex h-14 items-center justify-between px-4 lg:px-6 border-b border-ktms-border bg-ktms-panel shrink-0">
           <div className="flex items-center gap-3">
             <div className="lg:hidden">
-              <BrandLogo size={20} />
+              <BrandLogo size="sm" />
             </div>
             <span className="text-xs font-mono text-ktms-muted hidden sm:inline">
               KTMS Automated Operations
@@ -177,7 +171,6 @@ export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Top-Bar Bell Trigger */}
             <button
               onClick={() => setIsDrawerOpen(true)}
               className="relative p-2 rounded-lg bg-ktms-surface border border-ktms-border text-ktms-muted hover:text-ktms-text hover:border-ktms-cyan transition"
@@ -190,7 +183,6 @@ export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }
               )}
             </button>
 
-            {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2 rounded-lg bg-ktms-surface border border-ktms-border text-ktms-muted"
@@ -200,7 +192,6 @@ export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }
           </div>
         </header>
 
-        {/* Mobile Dropdown Menu */}
         {isMobileMenuOpen && (
           <div className="lg:hidden border-b border-ktms-border bg-ktms-panel p-3 space-y-1 shrink-0">
             {visibleNavItems.map((item) => {
@@ -222,7 +213,7 @@ export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }
               );
             })}
             <button
-              onClick={() => signOut()}
+              onClick={() => logout()}
               className="w-full flex items-center gap-3 px-3 py-2 rounded text-xs text-ktms-coral mt-2 border-t border-ktms-border"
             >
               <LogOut size={15} />
@@ -231,7 +222,6 @@ export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }
           </div>
         )}
 
-        {/* Child Views */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-6 bg-ktms-bg">
           {children}
         </main>
