@@ -14,6 +14,8 @@ import { FinanceDeskShell } from '@/views/finance/FinanceDeskShell';
 import { PlayerRosterDesk } from '@/views/disciplinary/PlayerRosterDesk';
 import { SupportTicketDesk } from '@/views/support/SupportTicketDesk';
 import { SupportCaseView } from '@/views/support/SupportCaseView';
+import { AchievementMediaReviewDesk } from '@/views/achievements/AchievementMediaReviewDesk';
+import { AchievementCurationDesk } from '@/views/achievements/AchievementCurationDesk';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -124,6 +126,28 @@ export const AppRoutes: React.FC = () => {
           >
             <AdminShell>
               <SupportCaseView />
+            </AdminShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Desk 6: DCC AI Gamification & Media Reviews */}
+      <Route
+        path="/achievements"
+        element={
+          <ProtectedRoute allowedRoles={['game_master', 'platform_manager', 'moderator']}>
+            <AdminShell>
+              <AchievementCurationDesk />
+            </AdminShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/achievements/reviews"
+        element={
+          <ProtectedRoute allowedRoles={['game_master', 'platform_manager', 'moderator']}>
+            <AdminShell>
+              <AchievementMediaReviewDesk />
             </AdminShell>
           </ProtectedRoute>
         }
