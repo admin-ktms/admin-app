@@ -1,239 +1,220 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Swords, UserX, AlertCircle, Clock, ArrowUpRight, Search } from 'lucide-react';
-import { usePendingDisputes, usePendingNoShows } from '@/hooks/useDisputes';
-import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Swords, Search, Clock, ArrowUpRight } from 'lucide-react';
+import { useDisputeCases, useNoShowCases } from '@/hooks/useDisputes';
+import { DisputeCaseItem, NoShowCaseItem } from '@/api/adjudication';
 import { DataTable, Column } from '@/components/ui/DataTable';
-
-interface UnifiedCaseItem {
-  key: string;
-  id: string;
-  type: 'dispute' | 'noshow';
-  typeLabel: 'Result Dispute' | 'No-show';
-  tournamentId: string;
-  matchCode: string;
-  roundName: string;
-  createdDatetime: string;
-  details: string;
-}
+import { StatusBadge } from '@/components/ui/StatusBadge';
 
 export const DisputeQueueDesk: React.FC = () => {
   const navigate = useNavigate();
-  const { data: disputes = [], isLoading: isDisputesLoading } = usePendingDisputes();
-  const { data: noShows = [], isLoading: isNoShowsLoading } = usePendingNoShows();
+  const { data: disputes = [], isLoading: isDisputesLoading } = useDisputeCases();
+  const { data: noShows = [], isLoading: isNoShowsLoading } = useNoShowCases();
 
-  const [filter, setFilter] = useState<'ALL' | 'DISPUTES' | 'NOSHOWS'>('ALL');
+  const [activeQueue, setActiveQueue] = useState<'disputes' | 'noshows'>('disputes');
   const [search, setSearch] = useState('');
 
-  const isLoading = isDisputesLoading || isNoShowsLoading;
-
-  // Unify disputes and no-shows into a single actionable queue
-  const unifiedCases: UnifiedCaseItem[] = [
-    ...disputes.map((d) => ({
-      key: `dispute-${d.dispute_id}`,
-      id: d.dispute_id,
-      type: 'dispute' as const,
-      typeLabel: 'Result Dispute' as const,
-      tournamentId: d.tournament_id,
-      matchCode: d.match_code,
-      roundName: d.round_name,
-      createdDatetime: d.created_datetime,
-      details: `Disputed scores: [${d.original_submission?.submitted_score || '?'}] vs [${d.counter_submission?.submitted_score || '?'}]`,
-    })),
-    ...noShows.map((n) => ({
-      key: `noshow-${n.no_show_report_id}`,
-      id: n.no_show_report_id,
-      type: 'noshow' as const,
-      typeLabel: 'No-show' as const,
-      tournamentId: n.tournament_id,
-      matchCode: n.match_code,
-      roundName: n.round_name,
-      createdDatetime: n.created_datetime,
-      details: `Reported by ${n.reporting_registration_id} (Reason: ${n.report_reason || 'Absent'})`,
-    })),
-  ].sort((a, b) => new Date(b.createdDatetime).getTime() - new Date(a.createdDatetime).getTime());
-
-  const filteredCases = unifiedCases.filter((c) => {
-    const matchesSearch =
-      c.id.toLowerCase().includes(search.toLowerCase()) ||
-      c.matchCode.toLowerCase().includes(search.toLowerCase()) ||
-      c.tournamentId.toLowerCase().includes(search.toLowerCase());
-
-    if (filter === 'DISPUTES') return matchesSearch && c.type === 'dispute';
-    if (filter === 'NOSHOWS') return matchesSearch && c.type === 'noshow';
-    return matchesSearch;
+  const filteredDisputes = disputes.filter((d) => {
+    return (
+      d.dispute_id.toLowerCase().includes(search.toLowerCase()) ||
+      d.match_code.toLowerCase().includes(search.toLowerCase()) ||
+      d.tournament_name.toLowerCase().includes(search.toLowerCase()) ||
+      d.player1_id.toLowerCase().includes(search.toLowerCase()) ||
+      d.player2_id.toLowerCase().includes(search.toLowerCase())
+    );
   });
 
-  const columns: Column<UnifiedCaseItem>[] = [
+  const filteredNoShows = noShows.filter((n) => {
+    return (
+      n.no_show_claim_id.toLowerCase().includes(search.toLowerCase()) ||
+      n.match_code.toLowerCase().includes(search.toLowerCase()) ||
+      n.tournament_name.toLowerCase().includes(search.toLowerCase()) ||
+      n.reporting_player_id.toLowerCase().includes(search.toLowerCase()) ||
+      n.reported_player_id.toLowerCase().includes(search.toLowerCase())
+    );
+  });
+
+  const disputeColumns: Column<DisputeCaseItem>[] = [
     {
-      key: 'type',
-      header: 'Case Type',
-      render: (c) => (
-        <StatusBadge
-          label={c.typeLabel}
-          variant={c.type === 'dispute' ? 'danger' : 'warning'}
-          pulse
-        />
-      ),
-      width: '140px',
+      key: 'dispute_id',
+      header: 'Dispute ID',
+      render: (d) => <span className="font-mono font-bold text-ktms-cyan">{d.dispute_id}</span>,
+      width: '120px',
     },
     {
       key: 'match',
-      header: 'Match / Round',
-      render: (c) => (
+      header: 'Match & Tournament',
+      render: (d) => (
         <div>
-          <span className="font-mono font-bold text-ktms-cyan">{c.matchCode}</span>
-          <span className="text-[11px] text-ktms-muted block">{c.roundName}</span>
+          <span className="font-mono font-semibold text-xs text-ktms-text block">{d.match_code}</span>
+          <span className="text-[11px] text-ktms-muted truncate max-w-[200px] block">
+            {d.tournament_name}
+          </span>
         </div>
       ),
     },
     {
-      key: 'tournamentId',
-      header: 'Tournament',
-      render: (c) => <span className="font-mono text-xs">{c.tournamentId}</span>,
+      key: 'participants',
+      header: 'Contesting Players',
+      render: (d) => (
+        <div className="font-mono text-xs text-ktms-text">
+          <span>{d.player1_username || d.player1_id}</span>
+          <span className="text-ktms-muted mx-1">vs</span>
+          <span>{d.player2_username || d.player2_id}</span>
+        </div>
+      ),
     },
     {
-      key: 'details',
-      header: 'Context Summary',
-      render: (c) => <span className="text-xs text-ktms-text/90">{c.details}</span>,
+      key: 'status',
+      header: 'Status',
+      render: (d) => <StatusBadge label={d.status} variant="warning" />,
+      width: '120px',
     },
     {
-      key: 'createdDatetime',
-      header: 'Received At',
-      render: (c) => (
-        <span className="font-mono text-[11px] text-ktms-muted">
-          {new Date(c.createdDatetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      key: 'time',
+      header: 'Elapsed',
+      render: (d) => (
+        <span className="font-mono text-[11px] text-ktms-muted flex items-center gap-1">
+          <Clock size={12} />
+          {new Date(d.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
       ),
+      width: '110px',
     },
     {
       key: 'action',
       header: '',
-      render: (c) => (
+      render: (d) => (
         <span className="text-xs font-semibold text-ktms-cyan flex items-center gap-0.5 justify-end">
-          Review <ArrowUpRight size={14} />
+          Review <ArrowUpRight size={13} />
         </span>
       ),
+      width: '90px',
+    },
+  ];
+
+  const noShowColumns: Column<NoShowCaseItem>[] = [
+    {
+      key: 'claim_id',
+      header: 'Claim ID',
+      render: (n) => <span className="font-mono font-bold text-ktms-cyan">{n.no_show_claim_id}</span>,
+      width: '120px',
+    },
+    {
+      key: 'match',
+      header: 'Match & Tournament',
+      render: (n) => (
+        <div>
+          <span className="font-mono font-semibold text-xs text-ktms-text block">{n.match_code}</span>
+          <span className="text-[11px] text-ktms-muted truncate max-w-[200px] block">
+            {n.tournament_name}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'reporting',
+      header: 'Reporting Player',
+      render: (n) => (
+        <span className="font-mono text-xs text-ktms-text">
+          {n.reporting_player_username || n.reporting_player_id}
+        </span>
+      ),
+    },
+    {
+      key: 'reported',
+      header: 'Accused No-Show',
+      render: (n) => (
+        <span className="font-mono text-xs text-ktms-coral">
+          {n.reported_player_username || n.reported_player_id}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (n) => <StatusBadge label={n.status} variant="warning" />,
+      width: '120px',
+    },
+    {
+      key: 'action',
+      header: '',
+      render: (n) => (
+        <span className="text-xs font-semibold text-ktms-cyan flex items-center gap-0.5 justify-end">
+          Adjudicate <ArrowUpRight size={13} />
+        </span>
+      ),
+      width: '100px',
     },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-lg font-bold text-ktms-text flex items-center gap-2">
           <Swords className="h-5 w-5 text-ktms-coral" />
-          Adjudication & Dispute Desk
+          Adjudication & Dispute Resolution Queue
         </h1>
         <p className="text-xs text-ktms-muted mt-0.5">
-          Arbitration queue for contested match scores and walkover validation.
+          Dual-control match outcome conflicts, score mismatches, and no-show claims.
         </p>
       </div>
 
-      {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-ktms-panel p-3 rounded-lg border border-ktms-border">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-2 border-b sm:border-b-0 pb-2 sm:pb-0">
           <button
-            onClick={() => setFilter('ALL')}
+            onClick={() => setActiveQueue('disputes')}
             className={`px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition ${
-              filter === 'ALL'
-                ? 'bg-ktms-cyan/10 text-ktms-cyan border border-ktms-cyan/30'
-                : 'text-ktms-muted hover:text-ktms-text hover:bg-ktms-surface'
-            }`}
-          >
-            All Active ({unifiedCases.length})
-          </button>
-          <button
-            onClick={() => setFilter('DISPUTES')}
-            className={`px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition ${
-              filter === 'DISPUTES'
+              activeQueue === 'disputes'
                 ? 'bg-ktms-coral/10 text-ktms-coral border border-ktms-coral/30'
-                : 'text-ktms-muted hover:text-ktms-text hover:bg-ktms-surface'
+                : 'text-ktms-muted hover:text-ktms-text'
             }`}
           >
-            Score Conflicts ({disputes.length})
+            Disputes ({disputes.length})
           </button>
           <button
-            onClick={() => setFilter('NOSHOWS')}
+            onClick={() => setActiveQueue('noshows')}
             className={`px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition ${
-              filter === 'NOSHOWS'
-                ? 'bg-ktms-gold/10 text-ktms-gold border border-ktms-gold/30'
-                : 'text-ktms-muted hover:text-ktms-text hover:bg-ktms-surface'
+              activeQueue === 'noshows'
+                ? 'bg-ktms-coral/10 text-ktms-coral border border-ktms-coral/30'
+                : 'text-ktms-muted hover:text-ktms-text'
             }`}
           >
-            No-Show Claims ({noShows.length})
+            No-Shows ({noShows.length})
           </button>
         </div>
 
-        <div className="relative flex items-center min-w-[220px]">
+        <div className="relative flex items-center min-w-[240px]">
           <Search className="absolute left-3 h-3.5 w-3.5 text-ktms-muted pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search match, case, or tournament..."
-            className="w-full bg-ktms-bg border border-ktms-border rounded pl-8 pr-3 py-1 text-xs text-ktms-text placeholder:text-ktms-muted/50 focus:border-ktms-cyan focus:outline-none"
+            placeholder="Search claim, match, or player..."
+            className="w-full bg-ktms-bg border border-ktms-border rounded pl-8 pr-3 py-1.5 text-xs text-ktms-text placeholder:text-ktms-muted/50 focus:border-ktms-cyan focus:outline-none"
           />
         </div>
       </div>
 
-      {/* Desktop Grid View */}
-      <div className="hidden lg:block">
+      {activeQueue === 'disputes' ? (
         <DataTable
-          columns={columns}
-          data={filteredCases}
-          keyExtractor={(c) => c.key}
-          isLoading={isLoading}
-          onRowClick={(c) => navigate(`/disputes/${c.type}/${c.id}`)}
-          emptyMessage="No pending disputes or no-show claims requiring review."
+          columns={disputeColumns}
+          data={filteredDisputes}
+          keyExtractor={(d) => d.dispute_id}
+          isLoading={isDisputesLoading}
+          onRowClick={(d) => navigate(`/disputes/dispute/${d.dispute_id}`)}
+          emptyMessage="No pending match result disputes in queue."
         />
-      </div>
-
-      {/* Mobile Touch Card View */}
-      <div className="lg:hidden space-y-3">
-        {isLoading ? (
-          <div className="p-8 text-center text-xs text-ktms-muted font-mono">
-            Loading arbitration queue...
-          </div>
-        ) : filteredCases.length === 0 ? (
-          <div className="p-8 text-center text-xs text-ktms-muted rounded border border-ktms-border bg-ktms-panel">
-            No active arbitration cases.
-          </div>
-        ) : (
-          filteredCases.map((c) => (
-            <div
-              key={c.key}
-              onClick={() => navigate(`/disputes/${c.type}/${c.id}`)}
-              className="flex flex-col gap-2.5 p-4 rounded-xl border border-ktms-border bg-ktms-panel active:bg-ktms-surface transition cursor-pointer shadow-sm"
-            >
-              <div className="flex items-center justify-between">
-                <StatusBadge
-                  label={c.typeLabel}
-                  variant={c.type === 'dispute' ? 'danger' : 'warning'}
-                />
-                <span className="font-mono text-[10px] text-ktms-muted flex items-center gap-1">
-                  <Clock size={11} />
-                  {new Date(c.createdDatetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-
-              <div>
-                <span className="font-mono text-sm font-bold text-ktms-cyan block">
-                  {c.matchCode} • {c.roundName}
-                </span>
-                <span className="font-mono text-[11px] text-ktms-muted">{c.tournamentId}</span>
-              </div>
-
-              <p className="text-xs text-ktms-text/90 line-clamp-2">{c.details}</p>
-
-              <div className="pt-2 border-t border-ktms-border/60 flex justify-end items-center gap-1 text-xs font-semibold text-ktms-cyan">
-                <span>Inspect Evidence</span>
-                <ArrowUpRight size={14} />
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+      ) : (
+        <DataTable
+          columns={noShowColumns}
+          data={filteredNoShows}
+          keyExtractor={(n) => n.no_show_claim_id}
+          isLoading={isNoShowsLoading}
+          onRowClick={(n) => navigate(`/disputes/noshow/${n.no_show_claim_id}`)}
+          emptyMessage="No pending no-show allegations in queue."
+        />
+      )}
     </div>
   );
 };
