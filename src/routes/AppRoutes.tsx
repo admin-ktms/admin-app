@@ -12,6 +12,8 @@ import { DisputeQueueDesk } from '@/views/adjudication/DisputeQueueDesk';
 import { DisputeReviewCase } from '@/views/adjudication/DisputeReviewCase';
 import { FinanceDeskShell } from '@/views/finance/FinanceDeskShell';
 import { PlayerRosterDesk } from '@/views/disciplinary/PlayerRosterDesk';
+import { SupportTicketDesk } from '@/views/support/SupportTicketDesk';
+import { SupportCaseView } from '@/views/support/SupportCaseView';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -96,6 +98,32 @@ export const AppRoutes: React.FC = () => {
           <ProtectedRoute allowedRoles={['game_master', 'platform_manager', 'moderator']}>
             <AdminShell>
               <PlayerRosterDesk />
+            </AdminShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Desk 5: Support Triage & Direct Communications */}
+      <Route
+        path="/support"
+        element={
+          <ProtectedRoute
+            allowedRoles={['game_master', 'support', 'platform_manager', 'moderator', 'accountant']}
+          >
+            <AdminShell>
+              <SupportTicketDesk />
+            </AdminShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/support/:caseId"
+        element={
+          <ProtectedRoute
+            allowedRoles={['game_master', 'support', 'platform_manager', 'moderator', 'accountant']}
+          >
+            <AdminShell>
+              <SupportCaseView />
             </AdminShell>
           </ProtectedRoute>
         }
