@@ -5,9 +5,7 @@ import {
   Send,
   UserCheck,
   CheckCircle,
-  XCircle,
   AlertCircle,
-  Clock,
   Shield,
   User,
 } from 'lucide-react';
@@ -36,13 +34,11 @@ export const SupportCaseView: React.FC = () => {
   );
   const { sendMessage, assignCase, changeStatus } = useSupportMutations();
 
-  // Ephemeral Presence Collision Guard
   const { isConflicted, activeStaff } = useCasePresence('support', caseId || null);
 
   const [inputBody, setInputBody] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Assignment Modal State
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [targetAdminId, setTargetAdminId] = useState('');
   const [assignReason, setAssignReason] = useState('');
@@ -107,15 +103,11 @@ export const SupportCaseView: React.FC = () => {
 
     try {
       setAssignError(null);
-      const res = await assignCase.mutateAsync({
+      await assignCase.mutateAsync({
         case_id: ticket.support_case_id,
         target_admin_id: targetAdminId.trim(),
         reason: assignReason.trim(),
       });
-
-      if (!res?.success) {
-        throw new Error(res?.message || res?.reason_code || 'Case routing rejected by backend');
-      }
 
       setIsAssignOpen(false);
       setTargetAdminId('');
@@ -135,7 +127,6 @@ export const SupportCaseView: React.FC = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] lg:h-[calc(100vh-60px)] max-w-5xl mx-auto space-y-3">
-      {/* Route & Assignment Modal */}
       <DrawerModal
         isOpen={isAssignOpen}
         onClose={() => setIsAssignOpen(false)}
@@ -166,7 +157,7 @@ export const SupportCaseView: React.FC = () => {
             rows={3}
             value={assignReason}
             onChange={(e) => setAssignReason(e.target.value)}
-            placeholder="State why this case is being transferred (e.g. Needs accountant review for refund)..."
+            placeholder="State why this case is being transferred..."
           />
 
           <div className="flex items-center justify-end gap-2 pt-2">
@@ -180,7 +171,6 @@ export const SupportCaseView: React.FC = () => {
         </form>
       </DrawerModal>
 
-      {/* Top Header */}
       <div className="shrink-0 space-y-2 border-b border-ktms-border pb-3">
         <button
           onClick={() => navigate('/support')}
@@ -207,7 +197,6 @@ export const SupportCaseView: React.FC = () => {
             <h1 className="text-base font-bold text-ktms-text">{ticket.subject}</h1>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex items-center gap-2">
             {!ticket.assigned_admin_id && (
               <Button
@@ -245,14 +234,12 @@ export const SupportCaseView: React.FC = () => {
         </div>
       </div>
 
-      {/* Realtime Presence Collision Banner */}
       {isConflicted && (
         <div className="shrink-0">
           <PresenceCollisionBanner activeStaff={activeStaff} resourceLabel="support ticket" />
         </div>
       )}
 
-      {/* Case Metadata Bar */}
       <div className="shrink-0 flex items-center justify-between px-3 py-2 rounded bg-ktms-surface/40 border border-ktms-border text-xs text-ktms-muted font-mono">
         <span>Player: {ticket.player_id}</span>
         <span>
@@ -267,12 +254,17 @@ export const SupportCaseView: React.FC = () => {
         </span>
       </div>
 
-      {/* Chat Messages Scroll Container */}
+      {formError && (
+        <div className="shrink-0 p-2.5 rounded bg-ktms-coral/10 border border-ktms-coral/30 text-xs text-ktms-coral flex items-center gap-2">
+          <AlertCircle size={14} className="shrink-0" />
+          <span>{formError}</span>
+        </div>
+      )}
+
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-4 rounded-xl border border-ktms-border bg-ktms-panel space-y-3"
       >
-        {/* Ticket Initial Problem Description */}
         <div className="flex flex-col p-3 rounded-lg bg-ktms-surface/70 border border-ktms-border/80 text-xs">
           <span className="font-semibold text-ktms-cyan mb-1 flex items-center gap-1.5">
             <User size={13} /> Original Player Inquiry:
@@ -285,7 +277,6 @@ export const SupportCaseView: React.FC = () => {
           </span>
         </div>
 
-        {/* Chronological Conversation Thread */}
         {isMessagesLoading ? (
           <div className="p-6 text-center text-xs font-mono text-ktms-muted">
             Loading ticket messages...
@@ -329,7 +320,6 @@ export const SupportCaseView: React.FC = () => {
         )}
       </div>
 
-      {/* Message Composer */}
       <form onSubmit={handleSendMessage} className="shrink-0 flex items-center gap-2 pt-1">
         <input
           type="text"
