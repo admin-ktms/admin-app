@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   CheckCheck,
-  Check,
   Clock,
   Swords,
   Receipt,
@@ -16,7 +15,6 @@ import {
 import { useAdminNotifications } from '@/hooks/useAdminNotifications';
 import { AdminNotificationItem } from '@/api/notifications';
 import { StatusBadge, StatusVariant } from '@/components/ui/StatusBadge';
-import { Button } from '@/components/ui/Button';
 
 interface NotificationInboxDrawerProps {
   isOpen: boolean;
@@ -65,7 +63,6 @@ export const NotificationInboxDrawer: React.FC<NotificationInboxDrawerProps> = (
 
     onClose();
 
-    // Resolve target desk route based on source entity and record ID
     const entity = n.source_entity?.toLowerCase() || '';
     if (entity.includes('dispute')) {
       navigate(`/disputes/dispute/${n.source_record_id || ''}`);
@@ -90,7 +87,6 @@ export const NotificationInboxDrawer: React.FC<NotificationInboxDrawerProps> = (
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
         onClick={onClose}
@@ -98,7 +94,6 @@ export const NotificationInboxDrawer: React.FC<NotificationInboxDrawerProps> = (
 
       <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
         <div className="w-screen max-w-md bg-ktms-panel border-l border-ktms-border flex flex-col shadow-2xl">
-          {/* Header */}
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-ktms-border bg-ktms-surface/50">
             <div className="flex items-center gap-2">
               <Bell size={16} className="text-ktms-cyan" />
@@ -131,7 +126,6 @@ export const NotificationInboxDrawer: React.FC<NotificationInboxDrawerProps> = (
             </div>
           </div>
 
-          {/* Filter Bar */}
           <div className="flex items-center gap-1.5 px-4 py-2 border-b border-ktms-border bg-ktms-bg/50">
             {[
               { id: 'ALL', label: `All (${notifications.length})` },
@@ -159,7 +153,6 @@ export const NotificationInboxDrawer: React.FC<NotificationInboxDrawerProps> = (
             ))}
           </div>
 
-          {/* List */}
           <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
             {isLoading ? (
               <div className="p-8 text-center text-xs text-ktms-muted font-mono">
