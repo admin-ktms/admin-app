@@ -10,6 +10,7 @@ import { TournamentsListDesk } from '@/views/tournaments/TournamentsListDesk';
 import { TournamentDetailDesk } from '@/views/tournaments/TournamentDetailDesk';
 import { DisputeQueueDesk } from '@/views/adjudication/DisputeQueueDesk';
 import { DisputeReviewCase } from '@/views/adjudication/DisputeReviewCase';
+import { FinanceDeskShell } from '@/views/finance/FinanceDeskShell';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -70,6 +71,18 @@ export const AppRoutes: React.FC = () => {
           <ProtectedRoute allowedRoles={['game_master', 'platform_manager', 'moderator']}>
             <AdminShell>
               <DisputeReviewCase />
+            </AdminShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Desk 3: Finance Desk & Award Disbursements */}
+      <Route
+        path="/finance"
+        element={
+          <ProtectedRoute allowedRoles={['game_master', 'accountant', 'platform_manager']}>
+            <AdminShell>
+              <FinanceDeskShell />
             </AdminShell>
           </ProtectedRoute>
         }
