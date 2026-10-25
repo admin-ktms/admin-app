@@ -1,4 +1,4 @@
-gimport { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export interface PendingBankTransferItem {
   transaction_history_id: string;
